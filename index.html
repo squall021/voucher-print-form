@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A4 憑證黏存單填寫、預覽與完整表單列印工具">
+  <meta name="color-scheme" content="light">
+  <title>憑證黏存單列印工具</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M18 12h28v40H18z' fill='white'/%3E%3Cpath d='M24 23h16M24 31h16M24 39h10' stroke='%231d4ed8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css?v=5">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">A4 完整列印</p>
+      <h1>憑證黏存單</h1>
+    </div>
+    <div class="top-actions">
+      <span id="saveStatus" class="save-status" aria-live="polite">已自動儲存</span>
+      <button id="clearButton" class="button button-secondary" type="button">清除內容</button>
+      <button id="printButton" class="button button-primary" type="button">列印完整表單</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="panel editor-panel" aria-labelledby="formTitle">
+      <div class="panel-heading">
+        <div>
+          <p class="step">填寫資料</p>
+          <h2 id="formTitle">表單內容</h2>
+        </div>
+        <span class="badge">最多 9 筆明細</span>
+      </div>
+
+      <form id="voucherForm" autocomplete="off">
+        <div class="field-grid field-grid-two">
+          <label class="field">
+            <span>單位</span>
+            <input id="unit" name="unit" type="text" maxlength="18" placeholder="請輸入單位名稱">
+          </label>
+          <label class="field">
+            <span>活動名稱</span>
+            <input id="activity" name="activity" type="text" maxlength="30" placeholder="請輸入活動名稱">
+          </label>
+        </div>
+
+        <fieldset class="date-fieldset">
+          <legend>日期</legend>
+          <div class="date-grid">
+            <label class="field compact"><span>年</span><input id="year" name="year" type="text" inputmode="numeric" maxlength="4" placeholder="115"></label>
+            <label class="field compact"><span>月</span><input id="month" name="month" type="text" inputmode="numeric" maxlength="2" placeholder="10"></label>
+            <label class="field compact"><span>日</span><input id="day" name="day" type="text" inputmode="numeric" maxlength="2" placeholder="1"></label>
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span>經手人</span>
+          <input id="handler" name="handler" type="text" maxlength="12" placeholder="請輸入姓名">
+        </label>
+
+        <section class="details-section" aria-labelledby="detailsTitle">
+          <div class="section-heading">
+            <div>
+              <p class="step">明細欄</p>
+              <h3 id="detailsTitle">內容及摘要</h3>
+            </div>
+            <button id="addItemButton" class="button button-quiet" type="button">新增一筆</button>
+          </div>
+          <div class="details-head" aria-hidden="true"><span>內容及摘要</span><span>金額</span><span></span></div>
+          <div id="detailsList" class="details-list"></div>
+          <div class="total-row">
+            <span>總金額</span>
+            <strong id="formTotal">NT$ 0</strong>
+          </div>
+        </section>
+
+        <fieldset class="payment-fieldset">
+          <legend>付款方式</legend>
+          <div class="payment-options">
+            <label><input type="radio" name="payment" value="cash"> 現金</label>
+            <label><input type="radio" name="payment" value="transfer"> 匯款帳號</label>
+            <label><input type="radio" name="payment" value=""> 不勾選</label>
+          </div>
+        </fieldset>
+
+      </form>
+    </section>
+
+    <section class="panel preview-panel" aria-labelledby="previewTitle">
+      <div class="panel-heading preview-heading">
+        <div>
+          <p class="step">即時預覽</p>
+          <h2 id="previewTitle">A4 完整表單</h2>
+        </div>
+        <span class="preview-note">表格與內容會一起列印</span>
+      </div>
+      <div class="paper-stage">
+        <div id="paper" class="paper" aria-label="憑證黏存單完整列印預覽">
+          <div id="printOverlay" class="voucher-document">
+            <div class="voucher-organization">國際佛光會中華總會</div>
+            <div class="voucher-title">憑 證 黏 存 單</div>
+
+            <div class="voucher-meta">
+              <div class="meta-field"><span>單位：</span><span id="previewUnit" class="printed-field meta-value"></span></div>
+              <div class="meta-field"><span>活動名稱：</span><span id="previewActivity" class="printed-field meta-value"></span></div>
+              <div class="meta-date"><span>日期：</span><span id="previewYear" class="printed-field date-year"></span><span>年</span><span id="previewMonth" class="printed-field date-number"></span><span>月</span><span id="previewDay" class="printed-field date-number"></span><span>日</span></div>
+            </div>
+
+            <table class="voucher-table" aria-label="憑證黏存單">
+              <colgroup><col><col><col><col><col></colgroup>
+              <tbody>
+                <tr class="signoff-heading"><th scope="col">經 手 人</th><th scope="col">單 位 主 管</th><th scope="col">審 核 人</th><th scope="col">會　　計</th><th scope="col">核　　准</th></tr>
+                <tr class="signoff-values"><td><span id="previewHandler" class="printed-field signature-value"></span></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td colspan="5" class="instructions-cell">
+                  <div class="voucher-instructions">
+                    <div class="paste-label">（單據黏貼處）</div>
+                    <div class="paste-line" aria-hidden="true"></div>
+                    <div class="instruction-lines">
+                      <div>1. 將發票（收據）黏貼於單據黏貼處，其他單據連同合約、估價單、送貨單及有關文件，裝訂於黏存單</div>
+                      <div>   之後，請順手將黏貼存單上的單據及裝訂於黏存單後之附件摺好（以不超過黏存單大小為準），填寫</div>
+                      <div>   金額、摘要，並於經手人欄簽章，上述單據請附正本。</div>
+                      <div>2. 內容及摘要欄，請詳細載明發生日期、事由及購買內容。</div>
+                      <div>3. 本會為非營利事業單位，請用二聯式發票報賬。</div>
+                      <div>4. 簽呈、估價單、合約、送貨單上所填金額，應寫含稅金額。</div>
+                      <div>5. 黏存單上的付款對象倘為廠商，其合約、估價單、送貨單、及發票的商號名稱均需相同。</div>
+                      <div>6. 收銀機發票若顯示商品代號，請用原子筆逐筆填寫購買內容。</div>
+                      <div>7. 若是廠商分批交貨，分批請款時，請各單位自行影印留存的簽呈、估價單及合約等，以利每次請款時</div>
+                      <div>  ，作為憑證裝訂用。</div>
+                      <div>8. 結報時，請取得合法單據，儘量向使用統一發票之公司行號採購，不要向未設立營利事業登記的商號</div>
+                      <div>  （無法開立正式收據的商號）購買東西。</div>
+                      <div>9. 經常往來廠商，一律使用電子轉帳或支票付款，請不要個人先行墊錢或以所保管之零用金支付。</div>
+                      <div>10.請按照簽呈、採購、驗收及請款流程，分次作業。未完成請購，請勿先行購買。</div>
+                    </div>
+                  </div>
+                </td></tr>
+                <tr class="detail-heading"><th colspan="4" scope="col">內 容 及 摘 要</th><th scope="col">金　額</th></tr>
+              </tbody>
+              <tbody id="previewDetails" class="voucher-detail-rows"></tbody>
+              <tbody>
+                <tr class="voucher-summary">
+                  <td colspan="3"><div class="vendor-signature"><span>廠商：</span><span>簽收：</span></div></td>
+                  <th scope="row">合　　計</th>
+                  <td><span id="previewTotal" class="printed-field total-value"></span></td>
+                </tr>
+                <tr class="voucher-remark">
+                  <th rowspan="3" scope="rowgroup" class="remark-label">備　註</th>
+                  <td colspan="4"><div class="remark-row">
+                    <span>收款：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>匯款:帳號</span><span class="blank-line"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>其他</span><span class="blank-line blank-short"></span>
+                  </div></td>
+                </tr>
+                <tr class="voucher-remark"><td colspan="4"><div class="remark-row">
+                  <span>沖銷：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>預支款 $</span><span class="blank-space"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>申請差額 $</span><span class="blank-space"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>繳回差額 $</span><span class="blank-space"></span>
+                </div></td></tr>
+                <tr class="voucher-remark"><td colspan="4"><div class="remark-row">
+                  <span>付款：</span><span class="remark-option"><span id="cashCheck" class="print-checkbox" role="img" aria-label="現金未勾選"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票 No.</span><span class="blank-space"></span><span class="remark-option"><span id="transferCheck" class="print-checkbox" role="img" aria-label="匯款帳號未勾選"></span>匯款帳號</span><span class="blank-space"></span>
+                </div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <p class="print-tip">放入空白 A4 紙，列印設定選擇 A4、直式、比例 100%、邊界「無」，並關閉頁首及頁尾。</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js?v=5"></script>
+</body>
+</html>
