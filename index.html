@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light">
   <title>憑證黏存單列印工具</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M18 12h28v40H18z' fill='white'/%3E%3Cpath d='M24 23h16M24 31h16M24 39h10' stroke='%231d4ed8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=5">
+  <link rel="stylesheet" href="./styles.css?v=6">
 </head>
 <body>
   <header class="topbar">
@@ -16,9 +16,11 @@
       <h1>憑證黏存單</h1>
     </div>
     <div class="top-actions">
-      <span id="saveStatus" class="save-status" aria-live="polite">已自動儲存</span>
-      <button id="clearButton" class="button button-secondary" type="button">清除內容</button>
-      <button id="printButton" class="button button-primary" type="button">列印完整表單</button>
+      <span id="saveStatus" class="save-status" aria-live="polite">草稿已自動儲存</span>
+      <button id="clearButton" class="button button-secondary" type="button">新增黏存單</button>
+      <button id="historyButton" class="button button-secondary" type="button">紀錄庫</button>
+      <button id="saveRecordButton" class="button button-secondary" type="button">儲存紀錄</button>
+      <button id="printButton" class="button button-primary" type="button">儲存並列印</button>
     </div>
   </header>
 
@@ -32,6 +34,7 @@
         <span class="badge">最多 9 筆明細</span>
       </div>
 
+      <div class="record-context"><strong id="recordContext" aria-live="polite">新黏存單・尚未存入紀錄庫</strong><p>草稿會自動保留。按「儲存紀錄」或「儲存並列印」，才會加入歷史紀錄。</p></div>
       <form id="voucherForm" autocomplete="off">
         <div class="field-grid field-grid-two">
           <label class="field">
@@ -163,7 +166,27 @@
     </section>
   </main>
 
+  <dialog id="historyDialog" class="history-dialog" aria-labelledby="historyTitle">
+    <div class="history-header">
+      <div><p class="step">歷史紀錄</p><h2 id="historyTitle">黏存單紀錄庫</h2></div>
+      <button id="closeHistoryButton" class="button button-secondary" type="button">關閉</button>
+    </div>
+    <div class="backup-bar">
+      <div><p>紀錄只保存在這個瀏覽器，請定期匯出備份。換電腦時可匯入繼續使用。</p><span id="backupStatus">尚未匯出備份</span></div>
+      <div class="backup-actions"><button id="exportBackupButton" class="button button-quiet" type="button">匯出備份</button><button id="importBackupButton" class="button button-secondary" type="button">匯入備份</button><input id="backupFile" type="file" accept=".json,application/json" hidden></div>
+    </div>
+    <div class="history-filters">
+      <label class="field"><span>搜尋紀錄</span><input id="historySearch" type="search" placeholder="編號、單位、活動、經手人或明細"></label>
+      <label class="field"><span>儲存日期（起）</span><input id="historyStart" type="date"></label>
+      <label class="field"><span>儲存日期（迄）</span><input id="historyEnd" type="date"></label>
+      <button id="resetHistoryFilters" class="button button-secondary" type="button">清除篩選</button>
+    </div>
+    <p id="historySummary" class="history-summary" aria-live="polite">載入紀錄中…</p>
+    <div id="historyList" class="history-list"></div>
+    <div class="history-pagination"><button id="previousHistoryPage" class="button button-secondary" type="button">上一頁</button><span id="historyPageLabel"></span><button id="nextHistoryPage" class="button button-secondary" type="button">下一頁</button></div>
+  </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./app.js?v=5"></script>
+  <script src="./records.js?v=6"></script>
+  <script src="./app.js?v=6"></script>
 </body>
 </html>

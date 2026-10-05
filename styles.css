@@ -55,7 +55,7 @@ button { cursor: pointer; }
 .eyebrow { color: #bcd0ff; }
 .step { color: var(--blue); }
 
-.top-actions { display: flex; align-items: center; gap: 10px; }
+.top-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .save-status { font-size: 0.82rem; color: #cbd7f5; margin-right: 4px; }
 
 .button {
@@ -123,7 +123,7 @@ button { cursor: pointer; }
 .field { display: grid; gap: 7px; min-width: 0; }
 .field > span, legend { color: #38445a; font-size: .88rem; font-weight: 750; }
 
-input[type="text"], input[type="number"] {
+input[type="text"], input[type="number"], input[type="search"], input[type="date"] {
   width: 100%;
   height: 44px;
   border: 1px solid #cdd4df;
@@ -343,6 +343,10 @@ legend { padding: 0 7px; }
 }
 
 .toast {
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  line-height: 1.5;
+  text-align: center;
   position: fixed;
   left: 50%;
   bottom: 24px;
@@ -358,6 +362,42 @@ legend { padding: 0 7px; }
   transition: opacity .2s ease, transform .2s ease;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.record-context { margin: -6px 0 20px; padding: 12px 14px; border: 1px solid #cbd8ff; border-radius: 12px; background: #f3f6ff; }
+.record-context strong { display: block; color: #244d9c; font-size: .9rem; }
+.record-context p { margin: 6px 0 0; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+button:disabled { cursor: default; opacity: .5; transform: none !important; }
+.history-dialog { width: min(1020px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); margin: auto; padding: 24px; border: 1px solid #dfe4ec; border-radius: 20px; color: var(--ink); background: #fff; box-shadow: 0 24px 80px rgba(15,23,42,.25); }
+.history-dialog::backdrop { background: rgba(16,26,49,.55); }
+.history-header, .backup-bar, .record-card-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.history-header h2 { margin: 0; font-size: 1.4rem; }
+.backup-bar { margin: 20px 0; padding: 14px; border-radius: 12px; background: #eef3fb; }
+.backup-bar p { margin: 0 0 5px; font-size: .9rem; line-height: 1.6; }
+.backup-bar span, .history-summary, .record-card-meta { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.backup-actions, .record-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.backup-actions { flex-shrink: 0; }
+.history-filters { display: grid; grid-template-columns: minmax(200px,1fr) 155px 155px auto; align-items: end; gap: 10px; }
+.history-filters .field, .history-filters input { min-width: 0; }
+.history-filters .button { height: 44px; }
+.history-summary { margin: 14px 0 10px; }
+.history-list { display: grid; gap: 12px; }
+.record-card { padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.record-card-header strong { font-size: 1rem; color: #214b9d; }
+.record-card-title { margin: 10px 0 5px; font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
+.record-card-meta { margin: 4px 0; }
+.record-card-amount { font-size: 1.1rem; font-weight: 750; white-space: nowrap; }
+.record-actions { align-items: center; margin-top: 12px; }
+.record-version-select { height: 40px; max-width: 100%; border: 1px solid #cdd4df; border-radius: 9px; padding: 7px; font: inherit; font-size: .85rem; background: #fff; }
+.record-delete { color: var(--danger); border-color: #efcbc7; }
+.history-empty { margin: 0; padding: 34px 15px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; line-height: 1.8; }
+.history-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 18px; font-size: .85rem; }
+@media (max-width: 800px) {
+  .history-filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .history-filters .field:first-child { grid-column: 1 / -1; }
+  .history-filters > button { grid-column: 1 / -1; }
+  .backup-bar { align-items: flex-start; flex-direction: column; }
+  .history-dialog { padding: 16px; }
+}
 
 @media (max-width: 1120px) {
   .workspace { grid-template-columns: 1fr; max-width: 900px; }
