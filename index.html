@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light">
   <title>憑證黏存單列印工具</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M18 12h28v40H18z' fill='white'/%3E%3Cpath d='M24 23h16M24 31h16M24 39h10' stroke='%231d4ed8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=7">
+  <link rel="stylesheet" href="./styles.css?v=8">
 </head>
 <body>
   <header class="topbar">
@@ -56,10 +56,10 @@
           </div>
         </fieldset>
 
-        <label class="field">
-          <span>經手人</span>
-          <input id="handler" name="handler" type="text" maxlength="12" placeholder="請輸入姓名">
-        </label>
+        <div class="field-grid field-grid-two">
+          <label class="field"><span>經手人</span><input id="handler" name="handler" type="text" maxlength="12" placeholder="請輸入姓名"></label>
+          <label class="field"><span>廠商</span><input id="vendor" name="vendor" type="text" maxlength="40" placeholder="請輸入廠商名稱（選填）"></label>
+        </div>
 
         <section class="details-section" aria-labelledby="detailsTitle">
           <div class="section-heading">
@@ -77,18 +77,34 @@
           </div>
         </section>
 
-        <fieldset class="payment-fieldset">
-          <legend>付款方式</legend>
-          <div class="payment-options">
-            <label><input type="radio" name="payment" value="cash"> 現金</label>
-            <label><input type="radio" name="payment" value="transfer"> 匯款帳號</label>
-            <label><input type="radio" name="payment" value=""> 不勾選</label>
-          </div>
-        </fieldset>
-
         <section class="remarks-section" aria-labelledby="remarksTitle">
           <div class="section-heading"><div><p class="step">選填</p><h3 id="remarksTitle">備註資料</h3></div></div>
-          <p class="remarks-help">填寫後會印在表單下方的收款、沖銷與付款空白欄位。</p>
+          <p class="remarks-help">勾選與文字會印在表單下方的收款、沖銷與付款欄位。方框可複選，再點一次可取消。</p>
+          <fieldset class="payment-fieldset">
+            <legend>收款勾選</legend>
+            <div class="payment-options">
+              <label><input id="checkReceiptCash" type="checkbox" name="checks" value="receiptCash" data-check="receiptCash"> 現金</label>
+              <label><input id="checkReceiptCheque" type="checkbox" name="checks" value="receiptCheque" data-check="receiptCheque"> 支票</label>
+              <label><input id="checkReceiptTransfer" type="checkbox" name="checks" value="receiptTransfer" data-check="receiptTransfer"> 匯款帳號</label>
+              <label><input id="checkReceiptOther" type="checkbox" name="checks" value="receiptOther" data-check="receiptOther"> 其他</label>
+            </div>
+          </fieldset>
+          <fieldset class="payment-fieldset">
+            <legend>沖銷勾選</legend>
+            <div class="payment-options">
+              <label><input id="checkAdvance" type="checkbox" name="checks" value="advance" data-check="advance"> 預支款</label>
+              <label><input id="checkRequestedDifference" type="checkbox" name="checks" value="requestedDifference" data-check="requestedDifference"> 申請差額</label>
+              <label><input id="checkReturnedDifference" type="checkbox" name="checks" value="returnedDifference" data-check="returnedDifference"> 繳回差額</label>
+            </div>
+          </fieldset>
+          <fieldset class="payment-fieldset">
+            <legend>付款勾選</legend>
+            <div class="payment-options">
+              <label><input id="checkPaymentCash" type="checkbox" name="checks" value="paymentCash" data-check="paymentCash"> 現金</label>
+              <label><input id="checkPaymentCheque" type="checkbox" name="checks" value="paymentCheque" data-check="paymentCheque"> 支票</label>
+              <label><input id="checkPaymentTransfer" type="checkbox" name="checks" value="paymentTransfer" data-check="paymentTransfer"> 匯款帳號</label>
+            </div>
+          </fieldset>
           <div class="field-grid field-grid-two">
             <label class="field"><span>收款：匯款帳號</span><input id="receiptAccount" name="receiptAccount" type="text" maxlength="40" placeholder="未使用可留空"></label>
             <label class="field"><span>收款：其他</span><input id="receiptOther" name="receiptOther" type="text" maxlength="60" placeholder="未使用可留空"></label>
@@ -154,21 +170,21 @@
               <tbody id="previewDetails" class="voucher-detail-rows"></tbody>
               <tbody>
                 <tr class="voucher-summary">
-                  <td colspan="3"><div class="vendor-signature"><span>廠商：</span><span>簽收：</span></div></td>
+                  <td colspan="3"><div class="vendor-signature"><span>廠商：</span><span id="previewVendor" class="printed-field vendor-name"></span><span>簽收：</span></div></td>
                   <th scope="row">合　　計</th>
                   <td><span id="previewTotal" class="printed-field total-value"></span></td>
                 </tr>
                 <tr class="voucher-remark">
                   <th rowspan="3" scope="rowgroup" class="remark-label">備　註</th>
                   <td colspan="4"><div class="remark-row">
-                    <span>收款：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>匯款:帳號</span><span id="previewReceiptAccount" class="blank-line printed-field printed-remark"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>其他</span><span id="previewReceiptOther" class="blank-line blank-short printed-field printed-remark"></span>
+                    <span>收款：</span><span class="remark-option"><span id="receiptCashCheck" data-print-check="receiptCash" data-check-label="現金" class="print-checkbox" role="img" aria-label="現金未勾選"></span>現金</span><span class="remark-option"><span id="receiptChequeCheck" data-print-check="receiptCheque" data-check-label="支票" class="print-checkbox" role="img" aria-label="支票未勾選"></span>支票</span><span class="remark-option"><span id="receiptTransferCheck" data-print-check="receiptTransfer" data-check-label="匯款帳號" class="print-checkbox" role="img" aria-label="匯款帳號未勾選"></span>匯款:帳號</span><span id="previewReceiptAccount" class="blank-line printed-field printed-remark"></span><span class="remark-option"><span id="receiptOtherCheck" data-print-check="receiptOther" data-check-label="其他" class="print-checkbox" role="img" aria-label="其他未勾選"></span>其他</span><span id="previewReceiptOther" class="blank-line blank-short printed-field printed-remark"></span>
                   </div></td>
                 </tr>
                 <tr class="voucher-remark"><td colspan="4"><div class="remark-row">
-                  <span>沖銷：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>預支款 $</span><span id="previewAdvanceAmount" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>申請差額 $</span><span id="previewRequestedDifference" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>繳回差額 $</span><span id="previewReturnedDifference" class="blank-space printed-field printed-remark"></span>
+                  <span>沖銷：</span><span class="remark-option"><span id="advanceCheck" data-print-check="advance" data-check-label="預支款" class="print-checkbox" role="img" aria-label="預支款未勾選"></span>預支款 $</span><span id="previewAdvanceAmount" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span id="requestedDifferenceCheck" data-print-check="requestedDifference" data-check-label="申請差額" class="print-checkbox" role="img" aria-label="申請差額未勾選"></span>申請差額 $</span><span id="previewRequestedDifference" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span id="returnedDifferenceCheck" data-print-check="returnedDifference" data-check-label="繳回差額" class="print-checkbox" role="img" aria-label="繳回差額未勾選"></span>繳回差額 $</span><span id="previewReturnedDifference" class="blank-space printed-field printed-remark"></span>
                 </div></td></tr>
                 <tr class="voucher-remark"><td colspan="4"><div class="remark-row">
-                  <span>付款：</span><span class="remark-option"><span id="cashCheck" class="print-checkbox" role="img" aria-label="現金未勾選"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票 No.</span><span id="previewPaymentCheckNumber" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span id="transferCheck" class="print-checkbox" role="img" aria-label="匯款帳號未勾選"></span>匯款帳號</span><span id="previewPaymentAccount" class="blank-space printed-field printed-remark"></span>
+                  <span>付款：</span><span class="remark-option"><span id="cashCheck" data-print-check="paymentCash" data-check-label="現金" class="print-checkbox" role="img" aria-label="現金未勾選"></span>現金</span><span class="remark-option"><span id="paymentChequeCheck" data-print-check="paymentCheque" data-check-label="支票" class="print-checkbox" role="img" aria-label="支票未勾選"></span>支票 No.</span><span id="previewPaymentCheckNumber" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span id="transferCheck" data-print-check="paymentTransfer" data-check-label="匯款帳號" class="print-checkbox" role="img" aria-label="匯款帳號未勾選"></span>匯款帳號</span><span id="previewPaymentAccount" class="blank-space printed-field printed-remark"></span>
                 </div></td></tr>
               </tbody>
             </table>
@@ -199,7 +215,7 @@
     <div class="history-pagination"><button id="previousHistoryPage" class="button button-secondary" type="button">上一頁</button><span id="historyPageLabel"></span><button id="nextHistoryPage" class="button button-secondary" type="button">下一頁</button></div>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./records.js?v=7"></script>
-  <script src="./app.js?v=7"></script>
+  <script src="./records.js?v=8"></script>
+  <script src="./app.js?v=8"></script>
 </body>
 </html>

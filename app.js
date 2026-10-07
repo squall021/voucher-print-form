@@ -24,6 +24,8 @@
     month: "",
     day: "",
     handler: "",
+    vendor: "",
+    checks: Object.fromEntries(recordsApi.CHECK_FIELDS.map(key => [key, false])),
     receiptAccount: "",
     receiptOther: "",
     advanceAmount: "",
@@ -46,8 +48,6 @@
     previewDetails: document.querySelector("#previewDetails"),
     previewTotal: document.querySelector("#previewTotal"),
     printOverlay: document.querySelector("#printOverlay"),
-    cashCheck: document.querySelector("#cashCheck"),
-    transferCheck: document.querySelector("#transferCheck"),
     saveStatus: document.querySelector("#saveStatus"),
     toast: document.querySelector("#toast")
   };
@@ -59,6 +59,7 @@
     month: document.querySelector("#previewMonth"),
     day: document.querySelector("#previewDay"),
     handler: document.querySelector("#previewHandler"),
+    vendor: document.querySelector("#previewVendor"),
     receiptAccount: document.querySelector("#previewReceiptAccount"),
     receiptOther: document.querySelector("#previewReceiptOther"),
     advanceAmount: document.querySelector("#previewAdvanceAmount"),
@@ -149,8 +150,7 @@
       const input = document.querySelector(`#${key}`);
       if (input) input.value = state[key] ?? "";
     });
-    const payment = elements.form.querySelector(`input[name="payment"][value="${CSS.escape(state.payment)}"]`);
-    if (payment) payment.checked = true;
+    elements.form.querySelectorAll("input[data-check]").forEach(input => { input.checked = state.checks[input.dataset.check]; });
   }
 
   function renderDetailsEditor() {
@@ -251,10 +251,11 @@
     const totalText = total ? numberFormatter.format(total) : "";
     setPrintedText(elements.previewTotal, totalText);
     elements.formTotal.textContent = `NT$ ${totalText || "0"}`;
-    elements.cashCheck.textContent = state.payment === "cash" ? "✓" : "";
-    elements.transferCheck.textContent = state.payment === "transfer" ? "✓" : "";
-    elements.cashCheck.setAttribute("aria-label", state.payment === "cash" ? "現金已勾選" : "現金未勾選");
-    elements.transferCheck.setAttribute("aria-label", state.payment === "transfer" ? "匯款帳號已勾選" : "匯款帳號未勾選");
+    elements.printOverlay.querySelectorAll("[data-print-check]").forEach(node => {
+      const checked = state.checks[node.dataset.printCheck];
+      node.textContent = checked ? "✓" : "";
+      node.setAttribute("aria-label", `${node.dataset.checkLabel}${checked ? "已勾選" : "未勾選"}`);
+    });
     fitPrintedText();
     renderRecordContext();
   }
@@ -272,6 +273,8 @@
       month: "",
       day: "",
       handler: "",
+      vendor: "",
+      checks: Object.fromEntries(recordsApi.CHECK_FIELDS.map(key => [key, false])),
       receiptAccount: "",
       receiptOther: "",
       advanceAmount: "",
@@ -301,10 +304,10 @@
         persist();
       });
     });
-    elements.form.querySelectorAll('input[name="payment"]').forEach((radio) => {
-      radio.addEventListener("change", (event) => {
-        if (!event.currentTarget.checked) return;
-        state.payment = event.currentTarget.value;
+    elements.form.querySelectorAll("input[data-check]").forEach(input => {
+      input.addEventListener("change", event => {
+        state.checks[event.currentTarget.dataset.check] = event.currentTarget.checked;
+        state.payment = recordsApi.normalizeSnapshot(state).payment;
         renderPreview();
         persist();
       });
@@ -326,7 +329,7 @@
 
   function allowReplaceDraft(action) {
     const snapshot = recordsApi.normalizeSnapshot(state);
-    const hasContent = Object.entries(snapshot).some(([key, value]) => key === "items" ? value.some(item => item.description || item.amount) : Boolean(value));
+    const hasContent = Object.entries(snapshot).some(([key, value]) => key === "items" ? value.some(item => item.description || item.amount) : key === "checks" ? Object.values(value).some(Boolean) : Boolean(value));
     if (!hasContent || recordsApi.fingerprint(snapshot) === savedFingerprint) return true;
     return window.confirm(`目前尚未存入紀錄的內容會被取代。確定要${action}嗎？`);
   }
@@ -439,7 +442,7 @@
         const stamp = recordsApi.dayStamp(new Date(version.savedAt));
         return (!start || stamp >= start) && (!end || stamp <= end);
       });
-      const searchable = [record.number, ...record.versions.flatMap(version => [version.snapshot.unit, version.snapshot.activity, version.snapshot.handler, version.snapshot.receiptAccount || "", version.snapshot.receiptOther || "", version.snapshot.advanceAmount || "", version.snapshot.requestedDifference || "", version.snapshot.returnedDifference || "", version.snapshot.paymentCheckNumber || "", version.snapshot.paymentAccount || "", ...version.snapshot.items.map(item => item.description)])].join(" ").toLocaleLowerCase();
+      const searchable = [record.number, ...record.versions.flatMap(version => [version.snapshot.unit, version.snapshot.activity, version.snapshot.handler, version.snapshot.vendor || "", version.snapshot.receiptAccount || "", version.snapshot.receiptOther || "", version.snapshot.advanceAmount || "", version.snapshot.requestedDifference || "", version.snapshot.returnedDifference || "", version.snapshot.paymentCheckNumber || "", version.snapshot.paymentAccount || "", ...version.snapshot.items.map(item => item.description)])].join(" ").toLocaleLowerCase();
       return matchesDate && (!query || searchable.includes(query));
     }).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.number.localeCompare(a.number));
     const pageCount = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
@@ -477,11 +480,12 @@
       });
       function updateCard() {
         const version = chosen();
-        const snapshot = version.snapshot;
+        const snapshot = recordsApi.normalizeSnapshot(version.snapshot);
         const total = snapshot.items.reduce((sum, item) => sum + parseAmount(item.amount), 0);
         title.textContent = `${snapshot.unit || "未填單位"} / ${snapshot.activity || "未填活動名稱"}`;
         amount.textContent = `NT$ ${numberFormatter.format(total)}`;
-        meta.textContent = `單據日期：${snapshot.year || "—"}/${snapshot.month || "—"}/${snapshot.day || "—"}・經手人：${snapshot.handler || "—"}・付款：${snapshot.payment === "cash" ? "現金" : snapshot.payment === "transfer" ? "匯款帳號" : "未勾選"}・首次儲存：${displayTime(record.createdAt)}`;
+        const paymentText = [["paymentCash", "現金"], ["paymentCheque", "支票"], ["paymentTransfer", "匯款帳號"]].filter(([key]) => snapshot.checks[key]).map(([, label]) => label).join("、") || "未勾選";
+        meta.textContent = `單據日期：${snapshot.year || "—"}/${snapshot.month || "—"}/${snapshot.day || "—"}・經手人：${snapshot.handler || "—"}・廠商：${snapshot.vendor || "—"}・付款：${paymentText}・首次儲存：${displayTime(record.createdAt)}`;
         const confirmed = version.printEvents.filter(event => event.confirmedAt).length;
         const lastPrint = version.printEvents.at(-1);
         status.textContent = `${record.versions.length} 個版本・本版開啟列印 ${version.printEvents.length} 次・已確認 ${confirmed} 次${lastPrint ? `・最近開啟列印：${displayTime(lastPrint.requestedAt)}` : ""}${record.originalNumber ? `・匯入前編號：${record.originalNumber}` : ""}`;
@@ -590,7 +594,7 @@
       void Promise.resolve(context.registerTool({
         name: "fill_voucher_form",
         title: "填寫憑證黏存單",
-        description: "將單位、活動、日期、經手人、明細與付款方式填入目前的憑證黏存單，並更新完整表單預覽。",
+        description: "將單位、活動、日期、經手人、廠商、明細、備註與收款／沖銷／付款勾選填入目前的憑證黏存單，並更新完整表單預覽。",
         inputSchema: {
           type: "object",
           properties: {
@@ -600,6 +604,8 @@
             month: { type: "string", maxLength: 2 },
             day: { type: "string", maxLength: 2 },
             handler: { type: "string", maxLength: 12 },
+            vendor: { type: "string", maxLength: 40 },
+            checks: { type: "object", properties: Object.fromEntries(recordsApi.CHECK_FIELDS.map(key => [key, { type: "boolean" }])), additionalProperties: false },
             receiptAccount: { type: "string", maxLength: 40 },
             receiptOther: { type: "string", maxLength: 60 },
             advanceAmount: { type: "string", maxLength: 20 },
@@ -628,9 +634,16 @@
         execute(input) {
           if (printSession) throw new Error("列印期間請稍候再修改內容");
           if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("輸入格式不正確");
+          if (Object.hasOwn(input, "checks") && (!input.checks || typeof input.checks !== "object" || Array.isArray(input.checks) || Object.entries(input.checks).some(([key, value]) => !recordsApi.CHECK_FIELDS.includes(key) || typeof value !== "boolean"))) throw new Error("勾選資料格式不正確");
           [...Object.keys(textBindings), "payment"].forEach((key) => {
             if (Object.hasOwn(input, key)) state[key] = input[key];
           });
+          if (Object.hasOwn(input, "payment")) {
+            state.checks.paymentCash = input.payment === "cash";
+            state.checks.paymentTransfer = input.payment === "transfer";
+          }
+          if (Object.hasOwn(input, "checks")) Object.assign(state.checks, input.checks);
+          state.payment = recordsApi.normalizeSnapshot(state).payment;
           if (Object.hasOwn(input, "items")) {
             if (!Array.isArray(input.items) || input.items.length > MAX_ITEMS) throw new Error("明細必須是最多 9 筆的陣列");
             state.items = input.items.length

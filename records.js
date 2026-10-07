@@ -3,7 +3,8 @@
 
   const FORMAT = "voucher-print-form-backup";
   const FIELDS = { unit: 18, activity: 30, year: 4, month: 2, day: 2, handler: 12 };
-  const OPTIONAL_FIELDS = { receiptAccount: 40, receiptOther: 60, advanceAmount: 20, requestedDifference: 20, returnedDifference: 20, paymentCheckNumber: 40, paymentAccount: 40 };
+  const OPTIONAL_FIELDS = { receiptAccount: 40, receiptOther: 60, advanceAmount: 20, requestedDifference: 20, returnedDifference: 20, paymentCheckNumber: 40, paymentAccount: 40, vendor: 40 };
+  const CHECK_FIELDS = ["receiptCash","receiptCheque","receiptTransfer","receiptOther","advance","requestedDifference","returnedDifference","paymentCash","paymentCheque","paymentTransfer"];
   const copy = value => JSON.parse(JSON.stringify(value));
   const uid = () => root.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
   const time = () => new Date().toISOString();
@@ -17,7 +18,16 @@
       snapshot[key] = String(value[key] ?? "").slice(0, length);
     }
     if (strict && !["", "cash", "transfer"].includes(value.payment)) fail("備份中的付款方式不正確");
-    snapshot.payment = ["", "cash", "transfer"].includes(value.payment) ? value.payment : "";
+    const legacyPayment = ["", "cash", "transfer"].includes(value.payment) ? value.payment : "";
+    const hasChecks = value.checks !== null && typeof value.checks === "object" && !Array.isArray(value.checks);
+    if (strict && value.checks !== undefined && !hasChecks) fail("備份中的勾選資料格式不正確");
+    if (strict && hasChecks && Object.keys(value.checks).some(key => !CHECK_FIELDS.includes(key))) fail("備份含不支援的勾選欄位");
+    snapshot.checks = Object.fromEntries(CHECK_FIELDS.map(key => {
+      if (strict && hasChecks && value.checks[key] !== undefined && typeof value.checks[key] !== "boolean") fail("備份中的勾選值必須為 true 或 false");
+      const checked = hasChecks ? value.checks[key] === true : (key === "paymentCash" && legacyPayment === "cash") || (key === "paymentTransfer" && legacyPayment === "transfer");
+      return [key, checked];
+    }));
+    snapshot.payment = snapshot.checks.paymentCash && !snapshot.checks.paymentTransfer ? "cash" : snapshot.checks.paymentTransfer && !snapshot.checks.paymentCash ? "transfer" : "";
     if (strict && (!Array.isArray(value.items) || value.items.length < 1 || value.items.length > 9)) fail("備份中的明細筆數不正確");
     snapshot.items = (Array.isArray(value.items) && value.items.length ? value.items : [{ description: "", amount: "" }]).slice(0, 9).map(item => {
       if (!item || typeof item !== "object") fail("明細內容格式不正確");
@@ -46,7 +56,7 @@
   }
 
   function validateBackup(value) {
-    if (!value || value.format !== FORMAT || ![1, 2].includes(value.schemaVersion) || !Array.isArray(value.records)) fail("請選擇由黏存單紀錄庫匯出的 JSON 備份檔");
+    if (!value || value.format !== FORMAT || ![1, 2, 3].includes(value.schemaVersion) || !Array.isArray(value.records)) fail("請選擇由黏存單紀錄庫匯出的 JSON 備份檔");
     if (value.records.length > 20000) fail("備份筆數超過可匯入範圍");
     const records = value.records.map(record => {
       if (!record || typeof record !== "object" || !/^\d{8}-\d{3,8}$/.test(record.number || "")) fail("備份中的黏存單編號不正確");
@@ -70,7 +80,7 @@
       return normalized;
     });
     unique(records.map(record => record.id), "黏存單識別碼");
-    return { format: FORMAT, schemaVersion: 2, exportedAt: validTime(value.exportedAt), records };
+    return { format: FORMAT, schemaVersion: 3, exportedAt: validTime(value.exportedAt), records };
   }
 
   function request(operation) {
@@ -162,7 +172,7 @@
     }
     remove(id) { return this.transaction("readwrite", records => request(records.delete(id))); }
     exportBackup() {
-      return this.transaction("readonly", async records => ({ format: FORMAT, schemaVersion: 2, exportedAt: time(), records: await request(records.getAll()) }));
+      return this.transaction("readonly", async records => ({ format: FORMAT, schemaVersion: 3, exportedAt: time(), records: await request(records.getAll()) }));
     }
     noteExport(exportedAt) { return this.transaction("readwrite", (records, meta) => request(meta.put({ key: "lastExport", value: exportedAt }))); }
     lastExport() { return this.transaction("readonly", (records, meta) => request(meta.get("lastExport")).then(value => value?.value || null)); }
@@ -232,7 +242,7 @@
     }
   }
 
-  const api = { RecordStore, normalizeSnapshot, fingerprint, validateBackup, dayStamp };
+  const api = { RecordStore, normalizeSnapshot, fingerprint, validateBackup, dayStamp, CHECK_FIELDS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.VoucherRecords = api;
 })(typeof window !== "undefined" ? window : globalThis);

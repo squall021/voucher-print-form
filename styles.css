@@ -210,6 +210,7 @@ legend { padding: 0 7px; }
 
 .remarks-section { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 20px; }
 .remarks-help { margin: 8px 0 14px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.remarks-section > .field-grid { margin-top: 18px; }
 .payment-options { display: flex; flex-wrap: wrap; gap: 10px; }
 .payment-options label {
   min-height: 40px;
@@ -313,8 +314,9 @@ legend { padding: 0 7px; }
 .printed-detail { height: calc(var(--detail-row-height) - calc(0.12 * var(--paper-unit))); --field-size: calc(1.764 * var(--paper-unit)); padding: 0 calc(0.9 * var(--paper-unit)); }
 .printed-detail-amount, .total-value { justify-content: flex-end; font-variant-numeric: tabular-nums; }
 .voucher-summary { height: calc(4.16 * var(--paper-unit)); }
-.vendor-signature { display: flex; justify-content: space-between; padding: 0 calc(0.35 * var(--paper-unit)); }
-.vendor-signature > span:last-child { width: 33.333%; }
+.vendor-signature { display: flex; align-items: center; gap: calc(0.35 * var(--paper-unit)); padding: 0 calc(0.35 * var(--paper-unit)); }
+.vendor-signature > span:last-child { width: 33.333%; flex: 0 0 33.333%; }
+.vendor-name { flex: 1 1 0; height: calc(3.7 * var(--paper-unit)); justify-content: flex-start; }
 .total-value { height: calc(4.04 * var(--paper-unit)); padding: 0 calc(0.9 * var(--paper-unit)); }
 
 .voucher-remark { height: calc(2.6 * var(--paper-unit)); font-size: calc(1.69 * var(--paper-unit)); }
