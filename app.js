@@ -24,6 +24,13 @@
     month: "",
     day: "",
     handler: "",
+    receiptAccount: "",
+    receiptOther: "",
+    advanceAmount: "",
+    requestedDifference: "",
+    returnedDifference: "",
+    paymentCheckNumber: "",
+    paymentAccount: "",
     payment: "",
     items: [
       { description: "", amount: "" },
@@ -51,7 +58,14 @@
     year: document.querySelector("#previewYear"),
     month: document.querySelector("#previewMonth"),
     day: document.querySelector("#previewDay"),
-    handler: document.querySelector("#previewHandler")
+    handler: document.querySelector("#previewHandler"),
+    receiptAccount: document.querySelector("#previewReceiptAccount"),
+    receiptOther: document.querySelector("#previewReceiptOther"),
+    advanceAmount: document.querySelector("#previewAdvanceAmount"),
+    requestedDifference: document.querySelector("#previewRequestedDifference"),
+    returnedDifference: document.querySelector("#previewReturnedDifference"),
+    paymentCheckNumber: document.querySelector("#previewPaymentCheckNumber"),
+    paymentAccount: document.querySelector("#previewPaymentAccount")
   };
 
   const numberFormatter = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 2 });
@@ -131,7 +145,7 @@
   }
 
   function syncControlsFromState() {
-    ["unit", "activity", "year", "month", "day", "handler"].forEach((key) => {
+    Object.keys(textBindings).forEach((key) => {
       const input = document.querySelector(`#${key}`);
       if (input) input.value = state[key] ?? "";
     });
@@ -258,6 +272,13 @@
       month: "",
       day: "",
       handler: "",
+      receiptAccount: "",
+      receiptOther: "",
+      advanceAmount: "",
+      requestedDifference: "",
+      returnedDifference: "",
+      paymentCheckNumber: "",
+      paymentAccount: "",
       payment: "",
       items: [
         { description: "", amount: "" },
@@ -273,7 +294,7 @@
   }
 
   function bindFormEvents() {
-    ["unit", "activity", "year", "month", "day", "handler"].forEach((key) => {
+    Object.keys(textBindings).forEach((key) => {
       document.querySelector(`#${key}`).addEventListener("input", (event) => {
         state[key] = event.currentTarget.value;
         renderPreview();
@@ -418,7 +439,7 @@
         const stamp = recordsApi.dayStamp(new Date(version.savedAt));
         return (!start || stamp >= start) && (!end || stamp <= end);
       });
-      const searchable = [record.number, ...record.versions.flatMap(version => [version.snapshot.unit, version.snapshot.activity, version.snapshot.handler, ...version.snapshot.items.map(item => item.description)])].join(" ").toLocaleLowerCase();
+      const searchable = [record.number, ...record.versions.flatMap(version => [version.snapshot.unit, version.snapshot.activity, version.snapshot.handler, version.snapshot.receiptAccount || "", version.snapshot.receiptOther || "", version.snapshot.advanceAmount || "", version.snapshot.requestedDifference || "", version.snapshot.returnedDifference || "", version.snapshot.paymentCheckNumber || "", version.snapshot.paymentAccount || "", ...version.snapshot.items.map(item => item.description)])].join(" ").toLocaleLowerCase();
       return matchesDate && (!query || searchable.includes(query));
     }).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.number.localeCompare(a.number));
     const pageCount = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
@@ -579,6 +600,13 @@
             month: { type: "string", maxLength: 2 },
             day: { type: "string", maxLength: 2 },
             handler: { type: "string", maxLength: 12 },
+            receiptAccount: { type: "string", maxLength: 40 },
+            receiptOther: { type: "string", maxLength: 60 },
+            advanceAmount: { type: "string", maxLength: 20 },
+            requestedDifference: { type: "string", maxLength: 20 },
+            returnedDifference: { type: "string", maxLength: 20 },
+            paymentCheckNumber: { type: "string", maxLength: 40 },
+            paymentAccount: { type: "string", maxLength: 40 },
             payment: { type: "string", enum: ["cash", "transfer", ""] },
             items: {
               type: "array",
@@ -600,7 +628,7 @@
         execute(input) {
           if (printSession) throw new Error("列印期間請稍候再修改內容");
           if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("輸入格式不正確");
-          ["unit", "activity", "year", "month", "day", "handler", "payment"].forEach((key) => {
+          [...Object.keys(textBindings), "payment"].forEach((key) => {
             if (Object.hasOwn(input, key)) state[key] = input[key];
           });
           if (Object.hasOwn(input, "items")) {

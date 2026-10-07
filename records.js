@@ -3,6 +3,7 @@
 
   const FORMAT = "voucher-print-form-backup";
   const FIELDS = { unit: 18, activity: 30, year: 4, month: 2, day: 2, handler: 12 };
+  const OPTIONAL_FIELDS = { receiptAccount: 40, receiptOther: 60, advanceAmount: 20, requestedDifference: 20, returnedDifference: 20, paymentCheckNumber: 40, paymentAccount: 40 };
   const copy = value => JSON.parse(JSON.stringify(value));
   const uid = () => root.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
   const time = () => new Date().toISOString();
@@ -11,8 +12,8 @@
   function normalizeSnapshot(value, strict = false) {
     if (!value || typeof value !== "object" || Array.isArray(value)) fail("黏存單內容格式不正確");
     const snapshot = {};
-    for (const [key, length] of Object.entries(FIELDS)) {
-      if (strict && (typeof value[key] !== "string" || value[key].length > length)) fail(`備份中的 ${key} 欄位格式不正確`);
+    for (const [key, length] of Object.entries({ ...FIELDS, ...OPTIONAL_FIELDS })) {
+      if (strict && (value[key] !== undefined || !Object.hasOwn(OPTIONAL_FIELDS, key)) && (typeof value[key] !== "string" || value[key].length > length)) fail(`備份中的 ${key} 欄位格式不正確`);
       snapshot[key] = String(value[key] ?? "").slice(0, length);
     }
     if (strict && !["", "cash", "transfer"].includes(value.payment)) fail("備份中的付款方式不正確");
@@ -45,7 +46,7 @@
   }
 
   function validateBackup(value) {
-    if (!value || value.format !== FORMAT || value.schemaVersion !== 1 || !Array.isArray(value.records)) fail("請選擇由黏存單紀錄庫匯出的 JSON 備份檔");
+    if (!value || value.format !== FORMAT || ![1, 2].includes(value.schemaVersion) || !Array.isArray(value.records)) fail("請選擇由黏存單紀錄庫匯出的 JSON 備份檔");
     if (value.records.length > 20000) fail("備份筆數超過可匯入範圍");
     const records = value.records.map(record => {
       if (!record || typeof record !== "object" || !/^\d{8}-\d{3,8}$/.test(record.number || "")) fail("備份中的黏存單編號不正確");
@@ -69,7 +70,7 @@
       return normalized;
     });
     unique(records.map(record => record.id), "黏存單識別碼");
-    return { format: FORMAT, schemaVersion: 1, exportedAt: validTime(value.exportedAt), records };
+    return { format: FORMAT, schemaVersion: 2, exportedAt: validTime(value.exportedAt), records };
   }
 
   function request(operation) {
@@ -161,7 +162,7 @@
     }
     remove(id) { return this.transaction("readwrite", records => request(records.delete(id))); }
     exportBackup() {
-      return this.transaction("readonly", async records => ({ format: FORMAT, schemaVersion: 1, exportedAt: time(), records: await request(records.getAll()) }));
+      return this.transaction("readonly", async records => ({ format: FORMAT, schemaVersion: 2, exportedAt: time(), records: await request(records.getAll()) }));
     }
     noteExport(exportedAt) { return this.transaction("readwrite", (records, meta) => request(meta.put({ key: "lastExport", value: exportedAt }))); }
     lastExport() { return this.transaction("readonly", (records, meta) => request(meta.get("lastExport")).then(value => value?.value || null)); }

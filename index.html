@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light">
   <title>憑證黏存單列印工具</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M18 12h28v40H18z' fill='white'/%3E%3Cpath d='M24 23h16M24 31h16M24 39h10' stroke='%231d4ed8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=6">
+  <link rel="stylesheet" href="./styles.css?v=7">
 </head>
 <body>
   <header class="topbar">
@@ -86,6 +86,19 @@
           </div>
         </fieldset>
 
+        <section class="remarks-section" aria-labelledby="remarksTitle">
+          <div class="section-heading"><div><p class="step">選填</p><h3 id="remarksTitle">備註資料</h3></div></div>
+          <p class="remarks-help">填寫後會印在表單下方的收款、沖銷與付款空白欄位。</p>
+          <div class="field-grid field-grid-two">
+            <label class="field"><span>收款：匯款帳號</span><input id="receiptAccount" name="receiptAccount" type="text" maxlength="40" placeholder="未使用可留空"></label>
+            <label class="field"><span>收款：其他</span><input id="receiptOther" name="receiptOther" type="text" maxlength="60" placeholder="未使用可留空"></label>
+            <label class="field"><span>沖銷：預支款（$）</span><input id="advanceAmount" name="advanceAmount" type="text" maxlength="20" placeholder="未使用可留空"></label>
+            <label class="field"><span>沖銷：申請差額（$）</span><input id="requestedDifference" name="requestedDifference" type="text" maxlength="20" placeholder="未使用可留空"></label>
+            <label class="field"><span>沖銷：繳回差額（$）</span><input id="returnedDifference" name="returnedDifference" type="text" maxlength="20" placeholder="未使用可留空"></label>
+            <label class="field"><span>付款：支票號碼</span><input id="paymentCheckNumber" name="paymentCheckNumber" type="text" maxlength="40" placeholder="未使用可留空"></label>
+            <label class="field"><span>付款：匯款帳號</span><input id="paymentAccount" name="paymentAccount" type="text" maxlength="40" placeholder="未使用可留空"></label>
+          </div>
+        </section>
       </form>
     </section>
 
@@ -148,14 +161,14 @@
                 <tr class="voucher-remark">
                   <th rowspan="3" scope="rowgroup" class="remark-label">備　註</th>
                   <td colspan="4"><div class="remark-row">
-                    <span>收款：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>匯款:帳號</span><span class="blank-line"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>其他</span><span class="blank-line blank-short"></span>
+                    <span>收款：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>匯款:帳號</span><span id="previewReceiptAccount" class="blank-line printed-field printed-remark"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>其他</span><span id="previewReceiptOther" class="blank-line blank-short printed-field printed-remark"></span>
                   </div></td>
                 </tr>
                 <tr class="voucher-remark"><td colspan="4"><div class="remark-row">
-                  <span>沖銷：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>預支款 $</span><span class="blank-space"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>申請差額 $</span><span class="blank-space"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>繳回差額 $</span><span class="blank-space"></span>
+                  <span>沖銷：</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>預支款 $</span><span id="previewAdvanceAmount" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>申請差額 $</span><span id="previewRequestedDifference" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>繳回差額 $</span><span id="previewReturnedDifference" class="blank-space printed-field printed-remark"></span>
                 </div></td></tr>
                 <tr class="voucher-remark"><td colspan="4"><div class="remark-row">
-                  <span>付款：</span><span class="remark-option"><span id="cashCheck" class="print-checkbox" role="img" aria-label="現金未勾選"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票 No.</span><span class="blank-space"></span><span class="remark-option"><span id="transferCheck" class="print-checkbox" role="img" aria-label="匯款帳號未勾選"></span>匯款帳號</span><span class="blank-space"></span>
+                  <span>付款：</span><span class="remark-option"><span id="cashCheck" class="print-checkbox" role="img" aria-label="現金未勾選"></span>現金</span><span class="remark-option"><span class="print-checkbox" aria-hidden="true"></span>支票 No.</span><span id="previewPaymentCheckNumber" class="blank-space printed-field printed-remark"></span><span class="remark-option"><span id="transferCheck" class="print-checkbox" role="img" aria-label="匯款帳號未勾選"></span>匯款帳號</span><span id="previewPaymentAccount" class="blank-space printed-field printed-remark"></span>
                 </div></td></tr>
               </tbody>
             </table>
@@ -186,7 +199,7 @@
     <div class="history-pagination"><button id="previousHistoryPage" class="button button-secondary" type="button">上一頁</button><span id="historyPageLabel"></span><button id="nextHistoryPage" class="button button-secondary" type="button">下一頁</button></div>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./records.js?v=6"></script>
-  <script src="./app.js?v=6"></script>
+  <script src="./records.js?v=7"></script>
+  <script src="./app.js?v=7"></script>
 </body>
 </html>
