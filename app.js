@@ -16,6 +16,7 @@
   let historyRecords = [];
   let historyPage = 0;
   const HISTORY_PAGE_SIZE = 20;
+  const CHECK_GROUPS = {"receipt":["receiptCash","receiptCheque","receiptTransfer","receiptOther"],"offset":["advance","requestedDifference","returnedDifference"],"payment":["paymentCash","paymentCheque","paymentTransfer"]};
 
   const state = {
     unit: "",
@@ -145,12 +146,30 @@
     }
   }
 
+  function singleSelectChecks() {
+    let changed = false;
+    for (const keys of Object.values(CHECK_GROUPS)) {
+      const selected = keys.find(key => state.checks[key]);
+      for (const key of keys) {
+        const checked = key === selected;
+        if (state.checks[key] !== checked) changed = true;
+        state.checks[key] = checked;
+      }
+    }
+    state.payment = recordsApi.normalizeSnapshot(state).payment;
+    return changed;
+  }
+
   function syncControlsFromState() {
+    const converted = singleSelectChecks();
     Object.keys(textBindings).forEach((key) => {
       const input = document.querySelector(`#${key}`);
       if (input) input.value = state[key] ?? "";
     });
-    elements.form.querySelectorAll("input[data-check]").forEach(input => { input.checked = state.checks[input.dataset.check]; });
+    elements.form.querySelectorAll("input[data-check]").forEach(input => {
+      input.checked = input.dataset.check ? state.checks[input.dataset.check] : !CHECK_GROUPS[input.dataset.checkGroup].some(key => state.checks[key]);
+    });
+    return converted;
   }
 
   function renderDetailsEditor() {
@@ -306,7 +325,9 @@
     });
     elements.form.querySelectorAll("input[data-check]").forEach(input => {
       input.addEventListener("change", event => {
-        state.checks[event.currentTarget.dataset.check] = event.currentTarget.checked;
+        if (!event.currentTarget.checked) return;
+        const { check, checkGroup } = event.currentTarget.dataset;
+        for (const key of CHECK_GROUPS[checkGroup]) state.checks[key] = key === check;
         state.payment = recordsApi.normalizeSnapshot(state).payment;
         renderPreview();
         persist();
@@ -423,12 +444,12 @@
     recordLabel = record.number;
     recordVersionNumber = version.number;
     savedFingerprint = recordsApi.fingerprint(version.snapshot);
-    syncControlsFromState();
+    const converted = syncControlsFromState();
     renderDetailsEditor();
     renderPreview();
     persist();
     document.querySelector("#historyDialog").close();
-    showToast(`已載入 ${record.number} 第 ${version.number} 版`);
+    showToast(`已載入 ${record.number} 第 ${version.number} 版${converted ? "；舊複選已改為每列單選，儲存會保留為新版本" : ""}`, converted ? 6500 : 2600);
     return true;
   }
 
@@ -635,14 +656,24 @@
           if (printSession) throw new Error("列印期間請稍候再修改內容");
           if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("輸入格式不正確");
           if (Object.hasOwn(input, "checks") && (!input.checks || typeof input.checks !== "object" || Array.isArray(input.checks) || Object.entries(input.checks).some(([key, value]) => !recordsApi.CHECK_FIELDS.includes(key) || typeof value !== "boolean"))) throw new Error("勾選資料格式不正確");
+          if (input.checks && Object.values(CHECK_GROUPS).some(keys => keys.filter(key => input.checks[key] === true).length > 1)) throw new Error("收款、沖銷、付款每列只能選一項");
           [...Object.keys(textBindings), "payment"].forEach((key) => {
             if (Object.hasOwn(input, key)) state[key] = input[key];
           });
           if (Object.hasOwn(input, "payment")) {
             state.checks.paymentCash = input.payment === "cash";
             state.checks.paymentTransfer = input.payment === "transfer";
+            state.checks.paymentCheque = false;
           }
-          if (Object.hasOwn(input, "checks")) Object.assign(state.checks, input.checks);
+          if (Object.hasOwn(input, "checks")) {
+            for (const keys of Object.values(CHECK_GROUPS)) {
+              const selected = keys.find(key => input.checks[key] === true);
+              for (const key of keys) {
+                if (selected) state.checks[key] = key === selected;
+                else if (Object.hasOwn(input.checks, key)) state.checks[key] = input.checks[key];
+              }
+            }
+          }
           state.payment = recordsApi.normalizeSnapshot(state).payment;
           if (Object.hasOwn(input, "items")) {
             if (!Array.isArray(input.items) || input.items.length > MAX_ITEMS) throw new Error("明細必須是最多 9 筆的陣列");
@@ -663,7 +694,11 @@
   }
 
   restore();
-  syncControlsFromState();
+  const convertedDraft = syncControlsFromState();
+  if (convertedDraft) {
+    persist();
+    showToast("舊草稿的複選已改為每列單選，請確認各列選項。", 6500);
+  }
   renderDetailsEditor();
   renderPreview();
   bindFormEvents();

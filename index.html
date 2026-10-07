@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light">
   <title>憑證黏存單列印工具</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M18 12h28v40H18z' fill='white'/%3E%3Cpath d='M24 23h16M24 31h16M24 39h10' stroke='%231d4ed8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=8">
+  <link rel="stylesheet" href="./styles.css?v=9">
 </head>
 <body>
   <header class="topbar">
@@ -79,30 +79,33 @@
 
         <section class="remarks-section" aria-labelledby="remarksTitle">
           <div class="section-heading"><div><p class="step">選填</p><h3 id="remarksTitle">備註資料</h3></div></div>
-          <p class="remarks-help">勾選與文字會印在表單下方的收款、沖銷與付款欄位。方框可複選，再點一次可取消。</p>
+          <p class="remarks-help">勾選與文字會印在表單下方的收款、沖銷與付款欄位。收款、沖銷、付款各自只能選一項；選「不勾選」可清除該列勾選。</p>
           <fieldset class="payment-fieldset">
             <legend>收款勾選</legend>
             <div class="payment-options">
-              <label><input id="checkReceiptCash" type="checkbox" name="checks" value="receiptCash" data-check="receiptCash"> 現金</label>
-              <label><input id="checkReceiptCheque" type="checkbox" name="checks" value="receiptCheque" data-check="receiptCheque"> 支票</label>
-              <label><input id="checkReceiptTransfer" type="checkbox" name="checks" value="receiptTransfer" data-check="receiptTransfer"> 匯款帳號</label>
-              <label><input id="checkReceiptOther" type="checkbox" name="checks" value="receiptOther" data-check="receiptOther"> 其他</label>
+              <label><input id="checkReceiptCash" type="radio" name="receiptChoice" value="receiptCash" data-check="receiptCash" data-check-group="receipt"> 現金</label>
+              <label><input id="checkReceiptCheque" type="radio" name="receiptChoice" value="receiptCheque" data-check="receiptCheque" data-check-group="receipt"> 支票</label>
+              <label><input id="checkReceiptTransfer" type="radio" name="receiptChoice" value="receiptTransfer" data-check="receiptTransfer" data-check-group="receipt"> 匯款帳號</label>
+              <label><input id="checkReceiptOther" type="radio" name="receiptChoice" value="receiptOther" data-check="receiptOther" data-check-group="receipt"> 其他</label>
+              <label><input id="receiptNone" type="radio" name="receiptChoice" value="" data-check="" data-check-group="receipt"> 不勾選</label>
             </div>
           </fieldset>
           <fieldset class="payment-fieldset">
             <legend>沖銷勾選</legend>
             <div class="payment-options">
-              <label><input id="checkAdvance" type="checkbox" name="checks" value="advance" data-check="advance"> 預支款</label>
-              <label><input id="checkRequestedDifference" type="checkbox" name="checks" value="requestedDifference" data-check="requestedDifference"> 申請差額</label>
-              <label><input id="checkReturnedDifference" type="checkbox" name="checks" value="returnedDifference" data-check="returnedDifference"> 繳回差額</label>
+              <label><input id="checkAdvance" type="radio" name="offsetChoice" value="advance" data-check="advance" data-check-group="offset"> 預支款</label>
+              <label><input id="checkRequestedDifference" type="radio" name="offsetChoice" value="requestedDifference" data-check="requestedDifference" data-check-group="offset"> 申請差額</label>
+              <label><input id="checkReturnedDifference" type="radio" name="offsetChoice" value="returnedDifference" data-check="returnedDifference" data-check-group="offset"> 繳回差額</label>
+              <label><input id="offsetNone" type="radio" name="offsetChoice" value="" data-check="" data-check-group="offset"> 不勾選</label>
             </div>
           </fieldset>
           <fieldset class="payment-fieldset">
             <legend>付款勾選</legend>
             <div class="payment-options">
-              <label><input id="checkPaymentCash" type="checkbox" name="checks" value="paymentCash" data-check="paymentCash"> 現金</label>
-              <label><input id="checkPaymentCheque" type="checkbox" name="checks" value="paymentCheque" data-check="paymentCheque"> 支票</label>
-              <label><input id="checkPaymentTransfer" type="checkbox" name="checks" value="paymentTransfer" data-check="paymentTransfer"> 匯款帳號</label>
+              <label><input id="checkPaymentCash" type="radio" name="paymentChoice" value="paymentCash" data-check="paymentCash" data-check-group="payment"> 現金</label>
+              <label><input id="checkPaymentCheque" type="radio" name="paymentChoice" value="paymentCheque" data-check="paymentCheque" data-check-group="payment"> 支票</label>
+              <label><input id="checkPaymentTransfer" type="radio" name="paymentChoice" value="paymentTransfer" data-check="paymentTransfer" data-check-group="payment"> 匯款帳號</label>
+              <label><input id="paymentNone" type="radio" name="paymentChoice" value="" data-check="" data-check-group="payment"> 不勾選</label>
             </div>
           </fieldset>
           <div class="field-grid field-grid-two">
@@ -215,7 +218,7 @@
     <div class="history-pagination"><button id="previousHistoryPage" class="button button-secondary" type="button">上一頁</button><span id="historyPageLabel"></span><button id="nextHistoryPage" class="button button-secondary" type="button">下一頁</button></div>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./records.js?v=8"></script>
-  <script src="./app.js?v=8"></script>
+  <script src="./records.js?v=9"></script>
+  <script src="./app.js?v=9"></script>
 </body>
 </html>
