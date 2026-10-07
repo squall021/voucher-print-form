@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light">
   <title>憑證黏存單列印工具</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M18 12h28v40H18z' fill='white'/%3E%3Cpath d='M24 23h16M24 31h16M24 39h10' stroke='%231d4ed8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css?v=10">
+  <link rel="stylesheet" href="./styles.css?v=11">
 </head>
 <body>
   <header class="topbar">
@@ -79,44 +79,62 @@
 
         <section class="remarks-section" aria-labelledby="remarksTitle">
           <div class="section-heading"><div><p class="step">選填</p><h3 id="remarksTitle">備註資料</h3></div></div>
-          <p class="remarks-help">勾選與文字會印在表單下方的收款、沖銷與付款欄位。收款、沖銷、付款各自只能選一項；選「不勾選」可清除該列勾選。</p>
+          <p class="remarks-help">每組單選，選取後填寫旁邊欄位。切換時保留文字；未選項目的文字不會列印。</p>
           <fieldset class="payment-fieldset">
-            <legend>收款勾選</legend>
-            <div class="payment-options">
-              <label><input id="checkReceiptCash" type="radio" name="receiptChoice" value="receiptCash" data-check="receiptCash" data-check-group="receipt"> 現金</label>
-              <label><input id="checkReceiptCheque" type="radio" name="receiptChoice" value="receiptCheque" data-check="receiptCheque" data-check-group="receipt"> 支票</label>
-              <label><input id="checkReceiptTransfer" type="radio" name="receiptChoice" value="receiptTransfer" data-check="receiptTransfer" data-check-group="receipt"> 匯款帳號</label>
-              <label><input id="checkReceiptOther" type="radio" name="receiptChoice" value="receiptOther" data-check="receiptOther" data-check-group="receipt"> 其他</label>
-              <label><input id="receiptNone" type="radio" name="receiptChoice" value="" data-check="" data-check-group="receipt"> 不勾選</label>
+            <legend>收款</legend>
+            <div class="choice-list">
+              <div class="choice-row choice-row-simple">
+                <label class="choice-option"><input id="checkReceiptCash" type="radio" name="receiptChoice" value="receiptCash" data-check="receiptCash" data-check-group="receipt"> 現金</label>
+              </div>
+              <div class="choice-row choice-row-simple">
+                <label class="choice-option"><input id="checkReceiptCheque" type="radio" name="receiptChoice" value="receiptCheque" data-check="receiptCheque" data-check-group="receipt"> 支票</label>
+              </div>
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkReceiptTransfer" type="radio" name="receiptChoice" value="receiptTransfer" data-check="receiptTransfer" data-check-group="receipt"> 匯款帳號</label>
+                <input id="receiptAccount" name="receiptAccount" class="choice-input" type="text" maxlength="40" aria-label="收款：匯款帳號" placeholder="輸入匯款帳號" disabled>
+              </div>
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkReceiptOther" type="radio" name="receiptChoice" value="receiptOther" data-check="receiptOther" data-check-group="receipt"> 其他</label>
+                <input id="receiptOther" name="receiptOther" class="choice-input" type="text" maxlength="60" aria-label="收款：其他" placeholder="輸入說明" disabled>
+              </div>
+              <div class="choice-row choice-row-simple"><label class="choice-option"><input id="receiptNone" type="radio" name="receiptChoice" value="" data-check="" data-check-group="receipt"> 不勾選</label></div>
             </div>
           </fieldset>
           <fieldset class="payment-fieldset">
-            <legend>沖銷勾選</legend>
-            <div class="payment-options">
-              <label><input id="checkAdvance" type="radio" name="offsetChoice" value="advance" data-check="advance" data-check-group="offset"> 預支款</label>
-              <label><input id="checkRequestedDifference" type="radio" name="offsetChoice" value="requestedDifference" data-check="requestedDifference" data-check-group="offset"> 申請差額</label>
-              <label><input id="checkReturnedDifference" type="radio" name="offsetChoice" value="returnedDifference" data-check="returnedDifference" data-check-group="offset"> 繳回差額</label>
-              <label><input id="offsetNone" type="radio" name="offsetChoice" value="" data-check="" data-check-group="offset"> 不勾選</label>
+            <legend>沖銷</legend>
+            <div class="choice-list">
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkAdvance" type="radio" name="offsetChoice" value="advance" data-check="advance" data-check-group="offset"> 預支款（$）</label>
+                <input id="advanceAmount" name="advanceAmount" class="choice-input" type="text" maxlength="20" inputmode="decimal" aria-label="沖銷：預支款金額" placeholder="輸入金額" disabled>
+              </div>
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkRequestedDifference" type="radio" name="offsetChoice" value="requestedDifference" data-check="requestedDifference" data-check-group="offset"> 申請差額（$）</label>
+                <input id="requestedDifference" name="requestedDifference" class="choice-input" type="text" maxlength="20" inputmode="decimal" aria-label="沖銷：申請差額金額" placeholder="輸入金額" disabled>
+              </div>
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkReturnedDifference" type="radio" name="offsetChoice" value="returnedDifference" data-check="returnedDifference" data-check-group="offset"> 繳回差額（$）</label>
+                <input id="returnedDifference" name="returnedDifference" class="choice-input" type="text" maxlength="20" inputmode="decimal" aria-label="沖銷：繳回差額金額" placeholder="輸入金額" disabled>
+              </div>
+              <div class="choice-row choice-row-simple"><label class="choice-option"><input id="offsetNone" type="radio" name="offsetChoice" value="" data-check="" data-check-group="offset"> 不勾選</label></div>
             </div>
           </fieldset>
           <fieldset class="payment-fieldset">
-            <legend>付款勾選</legend>
-            <div class="payment-options">
-              <label><input id="checkPaymentCash" type="radio" name="paymentChoice" value="paymentCash" data-check="paymentCash" data-check-group="payment"> 現金</label>
-              <label><input id="checkPaymentCheque" type="radio" name="paymentChoice" value="paymentCheque" data-check="paymentCheque" data-check-group="payment"> 支票</label>
-              <label><input id="checkPaymentTransfer" type="radio" name="paymentChoice" value="paymentTransfer" data-check="paymentTransfer" data-check-group="payment"> 匯款帳號</label>
-              <label><input id="paymentNone" type="radio" name="paymentChoice" value="" data-check="" data-check-group="payment"> 不勾選</label>
+            <legend>付款</legend>
+            <div class="choice-list">
+              <div class="choice-row choice-row-simple">
+                <label class="choice-option"><input id="checkPaymentCash" type="radio" name="paymentChoice" value="paymentCash" data-check="paymentCash" data-check-group="payment"> 現金</label>
+              </div>
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkPaymentCheque" type="radio" name="paymentChoice" value="paymentCheque" data-check="paymentCheque" data-check-group="payment"> 支票</label>
+                <input id="paymentCheckNumber" name="paymentCheckNumber" class="choice-input" type="text" maxlength="40" aria-label="付款：支票" placeholder="輸入支票號碼" disabled>
+              </div>
+              <div class="choice-row">
+                <label class="choice-option"><input id="checkPaymentTransfer" type="radio" name="paymentChoice" value="paymentTransfer" data-check="paymentTransfer" data-check-group="payment"> 匯款帳號</label>
+                <input id="paymentAccount" name="paymentAccount" class="choice-input" type="text" maxlength="40" aria-label="付款：匯款帳號" placeholder="輸入匯款帳號" disabled>
+              </div>
+              <div class="choice-row choice-row-simple"><label class="choice-option"><input id="paymentNone" type="radio" name="paymentChoice" value="" data-check="" data-check-group="payment"> 不勾選</label></div>
             </div>
           </fieldset>
-          <div class="field-grid field-grid-two">
-            <label class="field"><span>收款：匯款帳號</span><input id="receiptAccount" name="receiptAccount" type="text" maxlength="40" placeholder="未使用可留空"></label>
-            <label class="field"><span>收款：其他</span><input id="receiptOther" name="receiptOther" type="text" maxlength="60" placeholder="未使用可留空"></label>
-            <label class="field"><span>沖銷：預支款（$）</span><input id="advanceAmount" name="advanceAmount" type="text" maxlength="20" placeholder="未使用可留空"></label>
-            <label class="field"><span>沖銷：申請差額（$）</span><input id="requestedDifference" name="requestedDifference" type="text" maxlength="20" placeholder="未使用可留空"></label>
-            <label class="field"><span>沖銷：繳回差額（$）</span><input id="returnedDifference" name="returnedDifference" type="text" maxlength="20" placeholder="未使用可留空"></label>
-            <label class="field"><span>付款：支票號碼</span><input id="paymentCheckNumber" name="paymentCheckNumber" type="text" maxlength="40" placeholder="未使用可留空"></label>
-            <label class="field"><span>付款：匯款帳號</span><input id="paymentAccount" name="paymentAccount" type="text" maxlength="40" placeholder="未使用可留空"></label>
-          </div>
         </section>
       </form>
     </section>
@@ -218,7 +236,7 @@
     <div class="history-pagination"><button id="previousHistoryPage" class="button button-secondary" type="button">上一頁</button><span id="historyPageLabel"></span><button id="nextHistoryPage" class="button button-secondary" type="button">下一頁</button></div>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./records.js?v=9"></script>
-  <script src="./app.js?v=9"></script>
+  <script src="./records.js?v=11"></script>
+  <script src="./app.js?v=11"></script>
 </body>
 </html>

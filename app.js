@@ -17,6 +17,7 @@
   let historyPage = 0;
   const HISTORY_PAGE_SIZE = 20;
   const CHECK_GROUPS = {"receipt":["receiptCash","receiptCheque","receiptTransfer","receiptOther"],"offset":["advance","requestedDifference","returnedDifference"],"payment":["paymentCash","paymentCheque","paymentTransfer"]};
+  const OPTION_FIELDS = {"receiptAccount":"receiptTransfer","receiptOther":"receiptOther","advanceAmount":"advance","requestedDifference":"requestedDifference","returnedDifference":"returnedDifference","paymentCheckNumber":"paymentCheque","paymentAccount":"paymentTransfer"};
 
   const state = {
     unit: "",
@@ -237,9 +238,17 @@
     persist();
   }
 
+  function updateOptionInputs() {
+    for (const [field, check] of Object.entries(OPTION_FIELDS)) {
+      document.querySelector(`#${field}`).disabled = Boolean(printSession) || !state.checks[check];
+    }
+  }
+
   function renderPreview() {
+    updateOptionInputs();
     Object.entries(textBindings).forEach(([key, node]) => {
-      setPrintedText(node, state[key] || "");
+      const check = OPTION_FIELDS[key];
+      setPrintedText(node, check && !state.checks[check] ? "" : state[key] || "");
     });
 
     elements.previewDetails.replaceChildren();
@@ -365,6 +374,7 @@
     const printing = Boolean(printSession);
     for (const id of ["saveRecordButton", "printButton", "clearButton", "exportBackupButton", "importBackupButton"]) document.querySelector(`#${id}`).disabled = pendingOperations > 0 || printing;
     for (const control of elements.form.elements) control.disabled = printing;
+    updateOptionInputs();
     if (!printing) document.querySelector("#addItemButton").disabled = state.items.length >= MAX_ITEMS;
   }
 
