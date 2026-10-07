@@ -420,6 +420,33 @@ button:disabled { cursor: default; opacity: .5; transform: none !important; }
   .paper-stage { padding: 7px; }
 }
 
+@media screen and (min-width: 1121px) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .topbar { flex: 0 0 auto; }
+  .workspace {
+    flex: 1;
+    min-height: 0;
+    margin: 20px auto 24px;
+    align-items: stretch;
+  }
+  .editor-panel, .preview-panel {
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+  }
+  .preview-panel { position: static; }
+}
+
 @page { size: A4 portrait; margin: 0; }
 
 @media print {
