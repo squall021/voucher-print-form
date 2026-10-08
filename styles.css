@@ -213,7 +213,8 @@ legend { padding: 0 7px; }
 .choice-list { display: grid; gap: 8px; }
 .choice-row { display: grid; grid-template-columns: minmax(108px, .8fr) minmax(0, 1.2fr); gap: 10px; align-items: center; padding: 8px; border: 1px solid #d8deea; border-radius: 10px; min-width: 0; }
 .choice-row-simple { grid-template-columns: 1fr; min-height: 40px; }
-.choice-row:has(input[type="radio"]:checked) { border-color: #87a7ff; background: #f3f6ff; }
+.choice-row:has(input[data-check]:checked) { border-color: #87a7ff; background: #f3f6ff; }
+.clear-offset-button { justify-self: start; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: #fff; font-size: .85rem; }
 .choice-option { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: .88rem; font-weight: 700; cursor: pointer; }
 .choice-option input { accent-color: var(--blue); width: 18px; height: 18px; flex: 0 0 18px; margin: 0; }
 .choice-row .choice-input { height: 40px; min-width: 0; padding: 8px 10px; font-size: .9rem; }

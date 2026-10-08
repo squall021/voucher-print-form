@@ -17,6 +17,7 @@
   let historyPage = 0;
   const HISTORY_PAGE_SIZE = 20;
   const CHECK_GROUPS = {"receipt":["receiptCash","receiptCheque","receiptTransfer","receiptOther"],"offset":["advance","requestedDifference","returnedDifference"],"payment":["paymentCash","paymentCheque","paymentTransfer"]};
+  const SINGLE_CHOICE_GROUPS = ["receipt", "payment"];
   const OPTION_FIELDS = {"receiptAccount":"receiptTransfer","receiptOther":"receiptOther","advanceAmount":"advance","requestedDifference":"requestedDifference","returnedDifference":"returnedDifference","paymentCheckNumber":"paymentCheque","paymentAccount":"paymentTransfer"};
 
   const state = {
@@ -149,7 +150,8 @@
 
   function singleSelectChecks() {
     let changed = false;
-    for (const keys of Object.values(CHECK_GROUPS)) {
+    for (const group of SINGLE_CHOICE_GROUPS) {
+      const keys = CHECK_GROUPS[group];
       const selected = keys.find(key => state.checks[key]);
       for (const key of keys) {
         const checked = key === selected;
@@ -334,13 +336,23 @@
     });
     elements.form.querySelectorAll("input[data-check]").forEach(input => {
       input.addEventListener("change", event => {
-        if (!event.currentTarget.checked) return;
-        const { check, checkGroup } = event.currentTarget.dataset;
-        for (const key of CHECK_GROUPS[checkGroup]) state.checks[key] = key === check;
+        const control = event.currentTarget;
+        const { check, checkGroup } = control.dataset;
+        if (control.type === "checkbox") state.checks[check] = control.checked;
+        else {
+          if (!control.checked) return;
+          for (const key of CHECK_GROUPS[checkGroup]) state.checks[key] = key === check;
+        }
         state.payment = recordsApi.normalizeSnapshot(state).payment;
         renderPreview();
         persist();
       });
+    });
+    document.querySelector("#clearOffsetButton").addEventListener("click", () => {
+      for (const key of CHECK_GROUPS.offset) state.checks[key] = false;
+      syncControlsFromState();
+      renderPreview();
+      persist();
     });
     document.querySelector("#addItemButton").addEventListener("click", addItem);
     document.querySelector("#clearButton").addEventListener("click", clearForm);
@@ -459,7 +471,7 @@
     renderPreview();
     persist();
     document.querySelector("#historyDialog").close();
-    showToast(`已載入 ${record.number} 第 ${version.number} 版${converted ? "；舊複選已改為每列單選，儲存會保留為新版本" : ""}`, converted ? 6500 : 2600);
+    showToast(`已載入 ${record.number} 第 ${version.number} 版${converted ? "；收款或付款的舊複選已改為單選，儲存會保留為新版本" : ""}`, converted ? 6500 : 2600);
     return true;
   }
 
@@ -666,7 +678,7 @@
           if (printSession) throw new Error("列印期間請稍候再修改內容");
           if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("輸入格式不正確");
           if (Object.hasOwn(input, "checks") && (!input.checks || typeof input.checks !== "object" || Array.isArray(input.checks) || Object.entries(input.checks).some(([key, value]) => !recordsApi.CHECK_FIELDS.includes(key) || typeof value !== "boolean"))) throw new Error("勾選資料格式不正確");
-          if (input.checks && Object.values(CHECK_GROUPS).some(keys => keys.filter(key => input.checks[key] === true).length > 1)) throw new Error("收款、沖銷、付款每列只能選一項");
+          if (input.checks && SINGLE_CHOICE_GROUPS.some(group => CHECK_GROUPS[group].filter(key => input.checks[key] === true).length > 1)) throw new Error("收款與付款各只能選一項；沖銷可複選");
           [...Object.keys(textBindings), "payment"].forEach((key) => {
             if (Object.hasOwn(input, key)) state[key] = input[key];
           });
@@ -676,10 +688,11 @@
             state.checks.paymentCheque = false;
           }
           if (Object.hasOwn(input, "checks")) {
-            for (const keys of Object.values(CHECK_GROUPS)) {
+            for (const group of Object.keys(CHECK_GROUPS)) {
+              const keys = CHECK_GROUPS[group];
               const selected = keys.find(key => input.checks[key] === true);
               for (const key of keys) {
-                if (selected) state.checks[key] = key === selected;
+                if (group !== "offset" && selected) state.checks[key] = key === selected;
                 else if (Object.hasOwn(input.checks, key)) state.checks[key] = input.checks[key];
               }
             }
@@ -707,7 +720,7 @@
   const convertedDraft = syncControlsFromState();
   if (convertedDraft) {
     persist();
-    showToast("舊草稿的複選已改為每列單選，請確認各列選項。", 6500);
+    showToast("舊草稿的收款或付款複選已改為單選，請確認選項；沖銷複選會保留。", 6500);
   }
   renderDetailsEditor();
   renderPreview();
