@@ -308,7 +308,7 @@ legend { padding: 0 7px; }
 .printed-field { justify-content: center; }
 .printed-text { display: inline-block; flex: 0 0 auto; white-space: nowrap; }
 .printed-detail { height: calc(var(--detail-row-height) - calc(0.12 * var(--paper-unit))); --field-size: calc(1.764 * var(--paper-unit)); padding: 0 calc(0.9 * var(--paper-unit)); }
-.printed-detail-amount, .total-value { justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.printed-detail-amount, .total-value { --field-size: calc(2.3 * var(--paper-unit)); justify-content: flex-end; font-variant-numeric: tabular-nums; }
 .voucher-summary { height: calc(4.16 * var(--paper-unit)); }
 .vendor-signature { display: flex; align-items: center; gap: calc(0.35 * var(--paper-unit)); padding: 0 calc(0.35 * var(--paper-unit)); }
 .vendor-signature > span:last-child { width: 33.333%; flex: 0 0 33.333%; }
