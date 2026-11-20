@@ -283,7 +283,7 @@
     elements.formTotal.textContent = `NT$ ${totalText || "0"}`;
     elements.printOverlay.querySelectorAll("[data-print-check]").forEach(node => {
       const checked = state.checks[node.dataset.printCheck];
-      node.textContent = checked ? "✓" : "";
+      node.classList.toggle("is-checked", checked);
       node.setAttribute("aria-label", `${node.dataset.checkLabel}${checked ? "已勾選" : "未勾選"}`);
     });
     fitPrintedText();
